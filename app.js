@@ -8,6 +8,8 @@ const shopRouter = require('./routes/shop');
 
 const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
+app.use(express.static(path.join(__dirname, 'public')));
+// Checks for request extensitions and looks for them in public
 
 app.use('/admin', adminRouter);
 app.use(shopRouter);
