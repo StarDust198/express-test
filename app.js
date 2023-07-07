@@ -3,10 +3,14 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 
-const adminRouter = require('./routes/admin');
+const app = express();
+
+app.set('view engine', 'pug');
+app.set('views', 'views'); // Already set to "views" by default
+
+const adminRouter = require('./routes/admin').router;
 const shopRouter = require('./routes/shop');
 
-const app = express();
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 // Checks for request extensitions and looks for them in public
