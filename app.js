@@ -3,6 +3,8 @@ const path = require('path');
 const express = require('express');
 const bodyParser = require('body-parser');
 
+const errorController = require('./controllers/error');
+
 const app = express();
 
 app.set('view engine', 'ejs'); // Looks for 'ejs' extensions
@@ -18,8 +20,6 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use('/admin', adminRouter);
 app.use(shopRouter);
 
-app.use((req, res, next) => {
-  res.render('404', { docTitle: 'Page not found', path: '' });
-});
+app.use(errorController.getNotFound);
 
 app.listen(3000);
