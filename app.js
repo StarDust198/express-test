@@ -7,19 +7,18 @@ const errorController = require('./controllers/error');
 
 const app = express();
 
-app.set('view engine', 'ejs'); // Looks for 'ejs' extensions
-app.set('views', 'views'); // Already set to "views" by default
+app.set('view engine', 'ejs');
+app.set('views', 'views');
 
-const adminRouter = require('./routes/admin').router;
-const shopRouter = require('./routes/shop');
+const adminRoutes = require('./routes/admin');
+const shopRoutes = require('./routes/shop');
 
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
-// Checks for request with extensitions and looks for this files in public
 
-app.use('/admin', adminRouter);
-app.use(shopRouter);
+app.use('/admin', adminRoutes);
+app.use(shopRoutes);
 
-app.use(errorController.getNotFound);
+app.use(errorController.get404);
 
 app.listen(3000);
