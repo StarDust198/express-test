@@ -10,6 +10,10 @@ router.get('/', shopController.getIndex);
 
 router.get('/products', shopController.getProducts);
 
+// router.get('/products/delete', shopController.deleteProdut);
+// Order matters, this shouldnt be below :productId
+// otherwise, it will get
+
 router.get('/products/:productId', shopController.getProduct);
 
 router.get('/cart', shopController.getCart);
