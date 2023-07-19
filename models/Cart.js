@@ -53,7 +53,7 @@ module.exports = class Cart {
   }
 
   static getCart(cb) {
-    fs.read(cartFile, (err, fileContent) => {
+    fs.readFile(cartFile, (err, fileContent) => {
       const cart = JSON.parse(fileContent);
       cb(cart);
     });
