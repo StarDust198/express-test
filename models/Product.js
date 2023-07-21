@@ -1,10 +1,6 @@
-const fs = require('fs');
-const path = require('path');
+const db = require('../helpers/database');
 
-const { rootPath } = require('../helpers/path');
 const Cart = require('./Cart');
-
-const productsFile = path.join(rootPath, 'data', 'products.json');
 
 const getProductsFromFile = (cb) => {
   fs.readFile(productsFile, (err, fileContent) => {
@@ -26,49 +22,19 @@ module.exports = class Product {
   }
 
   save() {
-    getProductsFromFile((products) => {
-      if (this.id) {
-        const existingProductIndex = products.findIndex(
-          (prod) => prod.id === this.id
-        );
-        const updatedProducts = [...products];
-        updatedProducts[existingProductIndex] = this;
-        fs.writeFile(productsFile, JSON.stringify(updatedProducts), (err) => {
-          console.log(err);
-        });
-      } else {
-        this.id = Math.random().toString();
-        products.push(this);
-        fs.writeFile(productsFile, JSON.stringify(products), (err) => {
-          console.log(err);
-        });
-      }
-    });
+    return db.execute(
+      'INSERT INTO products (title, price, imageurl, description) VALUES (?, ?, ?, ?)',
+      [this.title, this.price, this.imageUrl, this.description]
+    );
   }
 
-  static fetchAll(cb) {
-    getProductsFromFile(cb);
+  static fetchAll() {
+    return db.execute('SELECT * FROM products');
   }
-  static findById(id, cb) {
-    getProductsFromFile((products) => {
-      const product = products.find((item) => item.id === id);
-      cb(product);
-    });
+
+  static findById(id) {
+    return db.execute('SELECT * FROM products WHERE products.id = ?', [id]);
   }
-  static deleteById(id) {
-    getProductsFromFile((products) => {
-      let productPrice = 0;
-      const updatedProducts = products.filter((prod) => {
-        if (prod.id === id) productPrice = prod.price;
-        return prod.id !== id;
-      });
-      fs.writeFile(productsFile, JSON.stringify(updatedProducts), (err) => {
-        if (!err) {
-          Cart.deleteProduct(id, productPrice);
-        } else {
-          console.log(err);
-        }
-      });
-    });
-  }
+
+  static deleteById(id) {}
 };
