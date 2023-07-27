@@ -9,6 +9,8 @@ const Product = require('./models/Product');
 const User = require('./models/User');
 const Cart = require('./models/Cart');
 const CartItem = require('./models/CartItem');
+const Order = require('./models/Order');
+const OrderItem = require('./models/OrderItem');
 
 const app = express();
 
@@ -46,7 +48,13 @@ User.hasOne(Cart);
 // Redundant example - one relation is enough
 Cart.belongsTo(User);
 Cart.belongsToMany(Product, { through: CartItem });
+// Redundant example - one relation is enough
 Product.belongsToMany(Cart, { through: CartItem });
+Order.belongsTo(User);
+User.hasMany(Order);
+Order.belongsToMany(Product, { through: OrderItem });
+// Redundant example - one relation is enough
+Product.belongsToMany(Order, { through: OrderItem });
 
 sequelize
   // .sync({ force: true }) // Temporary change to synce db
