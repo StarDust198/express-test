@@ -7,6 +7,8 @@ const errorController = require('./controllers/error');
 const sequelize = require('./helpers/database');
 const Product = require('./models/Product');
 const User = require('./models/User');
+const Cart = require('./models/Cart');
+const CartItem = require('./models/CartItem');
 
 const app = express();
 
@@ -38,9 +40,16 @@ Product.belongsTo(User, {
   constraints: true,
   onDelete: 'CASCADE',
 });
+// Redundant example - one relation is enough
 User.hasMany(Product);
+User.hasOne(Cart);
+// Redundant example - one relation is enough
+Cart.belongsTo(User);
+Cart.belongsToMany(Product, { through: CartItem });
+Product.belongsToMany(Cart, { through: CartItem });
 
 sequelize
+  // .sync({ force: true }) // Temporary change to synce db
   .sync()
   .then((result) => {
     return User.findByPk(1);
@@ -50,7 +59,10 @@ sequelize
     return Promise.resolve(user);
   })
   .then((user) => {
-    console.log(user);
+    // console.log(user)
+    return user.createCart();
+  })
+  .then(() => {
     app.listen(3000);
   })
   .catch(console.log);
