@@ -48,6 +48,26 @@ class User {
     );
   }
 
+  getCart() {
+    const db = getDb();
+    const productIds = this.cart.items.map((i) => i.productId);
+
+    return db
+      .collection('products')
+      .find({ _id: { $in: productIds } })
+      .toArray()
+      .then((products) =>
+        products.map((p) => {
+          return {
+            ...p,
+            quantity: this.cart.items.find(
+              (item) => item.productId.toString() === p._id.toString()
+            ).quantity,
+          };
+        })
+      );
+  }
+
   static findById(userId) {
     const db = getDb();
 
