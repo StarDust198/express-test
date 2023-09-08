@@ -3,15 +3,27 @@ const { mongoPassword: password } = require('../.env');
 const mongodb = require('mongodb');
 const MongoClient = mongodb.MongoClient;
 
+let _db;
+
 const mongoConnect = (callback) => {
   MongoClient.connect(
-    `mongodb+srv://roadtomars2030:${password}@cluster0.6j6n0va.mongodb.net/?retryWrites=true&w=majority`
+    `mongodb+srv://roadtomars2030:${password}@cluster0.6j6n0va.mongodb.net/shop?retryWrites=true&w=majority`
   )
     .then((client) => {
       console.log('Connected!');
-      callback(client);
+      _db = client.db();
+      callback();
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log(err);
+      throw err;
+    });
 };
 
-module.exports = mongoConnect;
+const getDb = () => {
+  if (_db) return _db;
+  throw 'No database found';
+};
+
+exports.mongoConnect = mongoConnect;
+exports.getDb = getDb;
