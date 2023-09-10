@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const errorController = require('./controllers/error');
-const User = require('./models/User');
+// const User = require('./models/User');
 
 const { mongoPassword: password } = require('./.env');
 
@@ -20,14 +20,14 @@ const shopRoutes = require('./routes/shop');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-app.use((req, res, next) => {
-  User.findById('64fb4be968816a0831066d52')
-    .then((user) => {
-      req.user = new User(user.name, user.email, user.cart, user._id);
-      next();
-    })
-    .catch(console.log);
-});
+// app.use((req, res, next) => {
+//   User.findById('64fb4be968816a0831066d52')
+//     .then((user) => {
+//       req.user = new User(user.name, user.email, user.cart, user._id);
+//       next();
+//     })
+//     .catch(console.log);
+// });
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
