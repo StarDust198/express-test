@@ -46,34 +46,38 @@ exports.postEditProduct = (req, res, next) => {
     price: updatedPrice,
     description: updatedDesc,
   } = req.body;
-  const product = new Product(
-    updatedTitle,
-    updatedPrice,
-    updatedDesc,
-    updatedImageUrl,
-    productId
-  );
-  product
-    .save()
+
+  Product.findById(productId)
+    .then((product) => {
+      product.title = updatedTitle;
+      product.price = updatedPrice;
+      product.description = updatedDesc;
+      product.imageUrl = updatedImageUrl;
+      return product.save();
+    })
     .then((result) => {
       console.log('UPDATED PRODUCT!');
       res.redirect('/admin/products');
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR UPDATING PRODUCT: ', err);
+    });
 };
 
 exports.postDeleteProduct = (req, res, next) => {
   const productId = req.body.productId;
-  Product.deleteById(productId)
+  Product.findByIdAndRemove(productId)
     .then(() => {
       console.log('DELETED PRODUCT!');
       res.redirect('/admin/products');
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR DELETING PRODUCT: ', err);
+    });
 };
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render('admin/products', {
         prods: products,

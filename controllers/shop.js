@@ -1,32 +1,38 @@
 const Product = require('../models/Product');
 
 exports.getProducts = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
+      console.log('FETCHED PRODUCTS: ', products);
       res.render('shop/product-list', {
         prods: products,
         pageTitle: 'All Products',
         path: '/products',
       });
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR FETCHING PRODUCTS: ', err);
+    });
 };
 
 exports.getProduct = (req, res, next) => {
   const { productId } = req.params;
+  console.log('productId: ', productId);
   Product.findById(productId)
     .then((product) => {
       res.render('shop/product-detail', {
         product,
         pageTitle: `${product.title} details`,
-        path: `/products/${product.id}`,
+        path: `/products/${product._id}`,
       });
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR GETTING PRODUCT: ', err);
+    });
 };
 
 exports.getIndex = (req, res, next) => {
-  Product.fetchAll()
+  Product.find()
     .then((products) => {
       res.render('shop/index', {
         prods: products,
