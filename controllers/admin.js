@@ -9,9 +9,14 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  // const { title, imageUrl, price, description } = req.body;
-  // const product = new Product({ title, imageUrl, price, description });
-  const product = new Product(req.body);
+  const { title, imageUrl, price, description } = req.body;
+  const product = new Product({
+    title,
+    imageUrl,
+    price,
+    description,
+    userId: req.user, // Mongoose will pick the id in user
+  });
   product
     .save()
     .then((result) => {
@@ -78,6 +83,12 @@ exports.postDeleteProduct = (req, res, next) => {
 
 exports.getProducts = (req, res, next) => {
   Product.find()
+    // .select('title price -_id')
+    //  only gets selected fields from found documents, "-" sign gets thing excluded,
+    //  _id is always selected by default
+    // .populate('userId', 'name')
+    //  populates field with relation with the related object instead of just an id,
+    //  second argument works like the previous "select"
     .then((products) => {
       res.render('admin/products', {
         prods: products,

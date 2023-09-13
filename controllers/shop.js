@@ -74,7 +74,9 @@ exports.postCartDelete = (req, res, next) => {
       console.log('DELETED FROM CART');
       res.redirect('/cart');
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR DELETING PRODUCT FROM CART: ', err);
+    });
 };
 
 exports.postOrder = (req, res, next) => {

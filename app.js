@@ -5,7 +5,7 @@ const bodyParser = require('body-parser');
 const mongoose = require('mongoose');
 
 const errorController = require('./controllers/error');
-// const User = require('./models/User');
+const User = require('./models/User');
 
 const { mongoPassword: password } = require('./.env');
 
@@ -20,14 +20,14 @@ const shopRoutes = require('./routes/shop');
 app.use(bodyParser.urlencoded({ extended: false }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-// app.use((req, res, next) => {
-//   User.findById('64fb4be968816a0831066d52')
-//     .then((user) => {
-//       req.user = new User(user.name, user.email, user.cart, user._id);
-//       next();
-//     })
-//     .catch(console.log);
-// });
+app.use((req, res, next) => {
+  User.findById('6500d0c5806f132d45e460fe')
+    .then((user) => {
+      req.user = user;
+      next();
+    })
+    .catch(console.log);
+});
 
 app.use('/admin', adminRoutes);
 app.use(shopRoutes);
@@ -39,6 +39,19 @@ mongoose
     `mongodb+srv://roadtomars2030:${password}@cluster0.6j6n0va.mongodb.net/shop?retryWrites=true&w=majority`
   )
   .then((result) => {
+    User.findOne().then((user) => {
+      if (!user) {
+        const user = new User({
+          name: 'Max',
+          email: 'max@test.com',
+          cart: {
+            items: [],
+          },
+        });
+        user.save();
+      }
+    });
+
     app.listen(3000);
   })
   .catch((err) => {
