@@ -46,23 +46,12 @@ userSchema.methods.addToCart = function (product) {
   return this.save();
 };
 
-// userSchema.methods.getCart = function () {
-//   // const db = getDb();
-//   const productIds = this.cart.items.map((i) => i.productId);
-
-//   return Product.find({ _id: { $in: productIds } }).then((products) => {
-//     const productsWithQ = products.map((p) => {
-//       return {
-//         ...p._doc,
-//         quantity: this.cart.items.find(
-//           (item) => item.productId.toString() === p._id.toString()
-//         ).quantity,
-//       };
-//     });
-//     console.log('PRODUCTS IN CART: ', productsWithQ);
-//     return productsWithQ;
-//   });
-// };
+userSchema.methods.removeFromCart = function (productId) {
+  this.cart.items = this.cart.items.filter(
+    (item) => item.productId.toString() !== productId.toString()
+  );
+  return this.save();
+};
 
 module.exports = mongoose.model('User', userSchema);
 
