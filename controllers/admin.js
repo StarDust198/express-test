@@ -18,7 +18,7 @@ exports.postAddProduct = (req, res, next) => {
     userId: req.user, // Mongoose will pick the id in user
   });
   product
-    .save()
+    .save() // Default Mongoose method!
     .then((result) => {
       console.log('ADDED PRODUCT!');
       res.redirect('/admin/products');
@@ -30,7 +30,7 @@ exports.getEditProduct = (req, res, next) => {
   const editMode = req.query.edit;
   if (!editMode) return res.redirect('/');
   const productId = req.params.productId;
-  Product.findById(productId)
+  Product.findById(productId) // Given by Mongoose
     .then((product) => {
       if (!product) return res.redirect('/404');
       res.render('admin/edit-product', {

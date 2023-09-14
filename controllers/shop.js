@@ -1,7 +1,8 @@
+const Order = require('../models/Order');
 const Product = require('../models/Product');
 
 exports.getProducts = (req, res, next) => {
-  Product.find()
+  Product.find() // Mongoose find, similar to MongoDB drv
     .then((products) => {
       console.log('FETCHED PRODUCTS: ', products);
       res.render('shop/product-list', {
@@ -81,16 +82,31 @@ exports.postCartDelete = (req, res, next) => {
 
 exports.postOrder = (req, res, next) => {
   req.user
-    .addOrder()
+    .populate('cart.items.productId')
+    .then((user) => {
+      const order = new Order({
+        user: {
+          name: user.name,
+          userId: user,
+        },
+        items: user.cart.items,
+      });
+
+      return order.save();
+    })
+    .then(() => {
+      return req.user.clearCart();
+    })
     .then((result) => {
       res.redirect('/orders');
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR ADDING ORDER: ', err);
+    });
 };
 
 exports.getOrders = (req, res, next) => {
-  req.user
-    .getOrders()
+  Order.find({ 'user.userId': req.user._id })
     .then((orders) => {
       res.render('shop/orders', {
         path: '/orders',
@@ -98,7 +114,9 @@ exports.getOrders = (req, res, next) => {
         orders,
       });
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR GETTING ORDERS: ', err);
+    });
 };
 
 // exports.getCheckout = (req, res, next) => {
