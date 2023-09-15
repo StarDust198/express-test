@@ -72,6 +72,7 @@ exports.postEditProduct = (req, res, next) => {
 exports.postDeleteProduct = (req, res, next) => {
   const productId = req.body.productId;
   Product.findByIdAndRemove(productId)
+    // Mongoose method
     .then(() => {
       console.log('DELETED PRODUCT!');
       res.redirect('/admin/products');

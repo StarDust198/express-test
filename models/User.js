@@ -26,6 +26,7 @@ const userSchema = new Schema({
 });
 
 userSchema.methods.addToCart = function (product) {
+  // We can add methods to Schema
   const cartProductIndex = this.cart.items.findIndex(
     (cp) => cp.productId.toString() === product._id.toString()
   );
