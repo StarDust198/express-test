@@ -37,12 +37,16 @@ app.use(
 );
 
 app.use((req, res, next) => {
-  User.findById('6500d0c5806f132d45e460fe')
+  if (!req.session.user) return next();
+
+  User.findById(req.session.user._id)
     .then((user) => {
       req.user = user;
       next();
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR GETTING USER FROM THE DB, ', err);
+    });
 });
 
 app.use('/admin', adminRoutes);

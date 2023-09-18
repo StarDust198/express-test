@@ -5,6 +5,7 @@ exports.getAddProduct = (req, res, next) => {
     pageTitle: 'Add Product',
     path: '/admin/add-product',
     editing: false,
+    isAuthentificated: req.session.isLoggedIn,
   });
 };
 
@@ -15,10 +16,10 @@ exports.postAddProduct = (req, res, next) => {
     imageUrl,
     price,
     description,
-    userId: req.user, // Mongoose will pick the id in user
+    userId: req.user,
   });
   product
-    .save() // Default Mongoose method!
+    .save()
     .then((result) => {
       console.log('ADDED PRODUCT!');
       res.redirect('/admin/products');
@@ -38,6 +39,7 @@ exports.getEditProduct = (req, res, next) => {
         pageTitle: 'Edit Product',
         path: '/admin/edit-product',
         editing: editMode,
+        isAuthentificated: req.session.isLoggedIn,
       });
     })
     .catch(console.log);
@@ -72,7 +74,6 @@ exports.postEditProduct = (req, res, next) => {
 exports.postDeleteProduct = (req, res, next) => {
   const productId = req.body.productId;
   Product.findByIdAndRemove(productId)
-    // Mongoose method
     .then(() => {
       console.log('DELETED PRODUCT!');
       res.redirect('/admin/products');
@@ -84,18 +85,12 @@ exports.postDeleteProduct = (req, res, next) => {
 
 exports.getProducts = (req, res, next) => {
   Product.find()
-    // .select('title price -_id')
-    //  only gets selected fields from found documents, "-" sign gets thing excluded,
-    //  _id is always selected by default
-    // .populate('userId', 'name')
-    //  populates field with relation with the related object instead of just an id,
-    //  second argument works like the previous "select"
     .then((products) => {
       res.render('admin/products', {
         prods: products,
         pageTitle: 'Admin Products',
         path: '/admin/products',
-        isAuthentificated: false,
+        isAuthentificated: req.session.isLoggedIn,
       });
     })
     .catch(console.log);

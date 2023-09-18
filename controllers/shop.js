@@ -2,14 +2,14 @@ const Order = require('../models/Order');
 const Product = require('../models/Product');
 
 exports.getProducts = (req, res, next) => {
-  Product.find() // Mongoose find, similar to MongoDB drv
+  Product.find()
     .then((products) => {
       console.log('FETCHED PRODUCTS: ', products);
       res.render('shop/product-list', {
         prods: products,
         pageTitle: 'All Products',
         path: '/products',
-        isAuthentificated: false,
+        isAuthentificated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -26,7 +26,7 @@ exports.getProduct = (req, res, next) => {
         product,
         pageTitle: `${product.title} details`,
         path: `/products/${product._id}`,
-        isAuthentificated: false,
+        isAuthentificated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
@@ -41,7 +41,7 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         pageTitle: 'Shop',
         path: '/',
-        isAuthentificated: false,
+        isAuthentificated: req.session.isLoggedIn,
       });
     })
     .catch(console.log);
@@ -55,7 +55,7 @@ exports.getCart = (req, res, next) => {
         path: '/cart',
         pageTitle: 'Your Cart',
         products: user.cart.items,
-        isAuthentificated: false,
+        isAuthentificated: req.session.isLoggedIn,
       });
     })
     .catch(console.log);
@@ -116,6 +116,7 @@ exports.getOrders = (req, res, next) => {
         path: '/orders',
         pageTitle: 'Your Orders',
         orders,
+        isAuthentificated: req.session.isLoggedIn,
       });
     })
     .catch((err) => {
