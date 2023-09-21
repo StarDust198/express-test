@@ -1,3 +1,5 @@
+const bcrypt = require('bcryptjs');
+
 const User = require('../models/User');
 
 exports.getLogin = (req, res, next) => {
@@ -18,7 +20,7 @@ exports.getSignup = (req, res, next) => {
 };
 
 exports.postLogin = (req, res, next) => {
-  User.findById('6509e827e11ce26ddcb8bf2d')
+  User.findById('650ca1ea12f662cad752e80d')
     .then((user) => {
       // res.setHeader('Set-Cookie', 'loggedIn=true; HttpOnly') // setting cookie for browser manually
       req.session.isLoggedIn = true;
@@ -37,12 +39,20 @@ exports.postSignup = (req, res, next) => {
   const { email, password, confirmPassword } = req.body;
   User.findOne({ email })
     .then((userDoc) => {
-      if (userDoc) {
-        return res.redirect('/signup');
-      }
-      const user = new User({ email, password, cart: { items: [] } });
+      if (userDoc) return res.redirect('/signup');
+
+      return bcrypt.hash(password, 12); // hashing password, 12 is highly secure level
+    })
+    .then((hashedPassword) => {
+      const user = new User({
+        email,
+        password: hashedPassword,
+        cart: { items: [] },
+      });
+
       return user.save();
     })
+
     .then((result) => {
       res.redirect('/login');
     })
