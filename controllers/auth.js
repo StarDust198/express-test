@@ -18,7 +18,7 @@ exports.getSignup = (req, res, next) => {
 };
 
 exports.postLogin = (req, res, next) => {
-  User.findById('6500d0c5806f132d45e460fe')
+  User.findById('6509e827e11ce26ddcb8bf2d')
     .then((user) => {
       // res.setHeader('Set-Cookie', 'loggedIn=true; HttpOnly') // setting cookie for browser manually
       req.session.isLoggedIn = true;
@@ -33,7 +33,21 @@ exports.postLogin = (req, res, next) => {
     });
 };
 
-exports.postSignup = (req, res, next) => {};
+exports.postSignup = (req, res, next) => {
+  const { email, password, confirmPassword } = req.body;
+  User.findOne({ email })
+    .then((userDoc) => {
+      if (userDoc) {
+        return res.redirect('/signup');
+      }
+      const user = new User({ email, password, cart: { items: [] } });
+      return user.save();
+    })
+    .then((result) => {
+      res.redirect('/login');
+    })
+    .catch((err) => console.log(err));
+};
 
 exports.postLogout = (req, res, next) => {
   req.session.destroy((err) => {
