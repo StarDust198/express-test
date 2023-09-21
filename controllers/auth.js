@@ -20,15 +20,30 @@ exports.getSignup = (req, res, next) => {
 };
 
 exports.postLogin = (req, res, next) => {
-  User.findById('650ca1ea12f662cad752e80d')
+  const { email, password } = req.body;
+
+  User.findOne({ email })
     .then((user) => {
-      // res.setHeader('Set-Cookie', 'loggedIn=true; HttpOnly') // setting cookie for browser manually
-      req.session.isLoggedIn = true;
-      req.session.user = user;
-      req.session.save((err) => {
-        if (err) console.log('ERROR LOGGING IN DURING SAVING SESSION: ', err);
-        res.redirect('/');
-      });
+      if (!user) return res.redirect('/login');
+
+      bcrypt
+        .compare(password, user.password)
+        .then((doMatch) => {
+          if (!doMatch) return res.redirect('./login');
+
+          req.session.isLoggedIn = true;
+          req.session.user = user;
+
+          return req.session.save((err) => {
+            if (err)
+              console.log('ERROR LOGGING IN DURING SAVING SESSION: ', err);
+            res.redirect('/');
+          });
+        })
+        .catch((err) => {
+          console.log('ERROR COMPARING PASSWORD: ', err);
+          res.redirect('/login');
+        });
     })
     .catch((err) => {
       console.log('ERROR LOGGING IN: ', err);
@@ -41,20 +56,20 @@ exports.postSignup = (req, res, next) => {
     .then((userDoc) => {
       if (userDoc) return res.redirect('/signup');
 
-      return bcrypt.hash(password, 12); // hashing password, 12 is highly secure level
-    })
-    .then((hashedPassword) => {
-      const user = new User({
-        email,
-        password: hashedPassword,
-        cart: { items: [] },
-      });
+      return bcrypt
+        .hash(password, 12) // hashing password, 12 is highly secure level
+        .then((hashedPassword) => {
+          const user = new User({
+            email,
+            password: hashedPassword,
+            cart: { items: [] },
+          });
 
-      return user.save();
-    })
-
-    .then((result) => {
-      res.redirect('/login');
+          return user.save();
+        })
+        .then((result) => {
+          res.redirect('/login');
+        });
     })
     .catch((err) => console.log(err));
 };
