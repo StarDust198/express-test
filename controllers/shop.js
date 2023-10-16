@@ -41,10 +41,11 @@ exports.getIndex = (req, res, next) => {
         prods: products,
         pageTitle: 'Shop',
         path: '/',
-        isAuthenticated: req.session.isLoggedIn,
       });
     })
-    .catch(console.log);
+    .catch((err) => {
+      console.log('ERROR SHOWING LIST OF PRODUCTS: ', err);
+    });
 };
 
 exports.getCart = (req, res, next) => {
@@ -90,7 +91,7 @@ exports.postOrder = (req, res, next) => {
     .then((user) => {
       const order = new Order({
         user: {
-          name: user.name,
+          email: user.email,
           userId: user,
         },
         items: user.cart.items,
