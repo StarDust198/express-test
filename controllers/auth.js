@@ -3,19 +3,22 @@ const bcrypt = require('bcryptjs');
 const User = require('../models/User');
 
 exports.getLogin = (req, res, next) => {
+  const errorMessage = req.flash('error')[0];
+
   res.render('auth/login', {
     path: '/login',
     pageTitle: 'Login',
-    isAuthenticated: false,
-    // Added for all pages within req.session.isLoggedIn
+    errorMessage,
   });
 };
 
 exports.getSignup = (req, res, next) => {
+  const errorMessage = req.flash('error')[0];
+
   res.render('auth/signup', {
     path: '/signup',
     pageTitle: 'Signup',
-    isAuthenticated: false,
+    errorMessage,
   });
 };
 
@@ -24,19 +27,26 @@ exports.postLogin = (req, res, next) => {
 
   User.findOne({ email })
     .then((user) => {
-      if (!user) return res.redirect('/login');
+      if (!user) {
+        req.flash('error', 'Invalid email.');
+        return res.redirect('/login');
+      }
 
       bcrypt
         .compare(password, user.password)
         .then((doMatch) => {
-          if (!doMatch) return res.redirect('./login');
+          if (!doMatch) {
+            req.flash('error', 'Invalid password.');
+            return res.redirect('./login');
+          }
 
           req.session.isLoggedIn = true;
           req.session.user = user;
 
           return req.session.save((err) => {
-            if (err)
+            if (err) {
               console.log('ERROR LOGGING IN DURING SAVING SESSION: ', err);
+            }
             res.redirect('/');
           });
         })
@@ -54,7 +64,10 @@ exports.postSignup = (req, res, next) => {
   const { email, password, confirmPassword } = req.body;
   User.findOne({ email })
     .then((userDoc) => {
-      if (userDoc) return res.redirect('/signup');
+      if (userDoc) {
+        req.flash('error', 'Email already registered.');
+        return res.redirect('/signup');
+      }
 
       return bcrypt
         .hash(password, 12) // hashing password, 12 is highly secure level
