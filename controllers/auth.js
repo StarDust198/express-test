@@ -1,6 +1,18 @@
 const bcrypt = require('bcryptjs');
+const nodemailer = require('nodemailer');
 
 const User = require('../models/User');
+const { emailUser, emailPassword } = require('../.env');
+
+const transporter = nodemailer.createTransport({
+  service: 'hotmail',
+  auth: {
+    user: emailUser,
+    pass: emailPassword,
+  },
+});
+
+const options = {};
 
 exports.getLogin = (req, res, next) => {
   const errorMessage = req.flash('error')[0];
@@ -81,7 +93,24 @@ exports.postSignup = (req, res, next) => {
           return user.save();
         })
         .then((result) => {
-          res.redirect('/login');
+          transporter.sendMail(
+            {
+              from: emailUser,
+              to: email,
+              subject: 'Successful Signup',
+              html: '<h1>You have successfully signed up!</h1>',
+            },
+            (err, info) => {
+              if (err) {
+                console.log(err);
+                return;
+              }
+
+              console.log('succesfully sent, response:', info.response);
+            }
+          );
+
+          return res.redirect('/login');
         });
     })
     .catch((err) => console.log(err));
