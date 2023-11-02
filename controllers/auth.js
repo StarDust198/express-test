@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
 
@@ -11,8 +12,6 @@ const transporter = nodemailer.createTransport({
     pass: emailPassword,
   },
 });
-
-const options = {};
 
 exports.getLogin = (req, res, next) => {
   const errorMessage = req.flash('error')[0];
@@ -121,4 +120,117 @@ exports.postLogout = (req, res, next) => {
     if (err) console.log('ERROR LOGGING OUT: ', err);
     res.redirect('/');
   });
+};
+
+exports.getReset = (req, res, next) => {
+  const errorMessage = req.flash('error')[0];
+
+  res.render('auth/reset', {
+    path: '/reset',
+    pageTitle: 'Reset Password',
+    errorMessage,
+  });
+};
+
+exports.postReset = (req, res, next) => {
+  crypto.randomBytes(32, (err, buffer) => {
+    if (err) {
+      console.log('ERROR RESETTING PASSWORD: ', err);
+      return res.redirect('/reset');
+    }
+
+    const token = buffer.toString('hex');
+
+    User.findOne({ email: req.body.email })
+      .then((user) => {
+        if (!user) {
+          req.flash('error', 'No account with that email found');
+          return res.redirect('/reset');
+        }
+
+        user.resetToken = token;
+        user.resetTokenExpiration = Date.now() + 3600000;
+        user.save();
+      })
+      .then((result) => {
+        res.redirect('/login');
+        transporter.sendMail(
+          {
+            from: emailUser,
+            to: req.body.email,
+            subject: 'Password Reset Requested',
+            html: `
+              <p>You requested a password reset!</p>
+              <p>Click this <a href="http://localhost:3000/reset/${token}">link</a> to set a new password</p>
+            `,
+          },
+          (err, info) => {
+            if (err) {
+              console.log(err);
+              return;
+            }
+
+            console.log('succesfully sent, response:', info.response);
+          }
+        );
+      })
+      .catch((err) => {
+        console.log('ERROR GETTING USER FROM THE DATABASE: ', err);
+      });
+  });
+};
+
+exports.getNewPassword = (req, res, next) => {
+  const token = req.params.token;
+  User.findOne({
+    resetToken: token,
+    resetTokenExpiration: {
+      $gt: Date.now(),
+    },
+  })
+    .then((user) => {
+      const errorMessage = req.flash('error')[0];
+
+      res.render('auth/new-password', {
+        path: '/new-password',
+        pageTitle: 'New Password',
+        errorMessage,
+        userId: user._id.toString(),
+        passwordToken: token,
+      });
+    })
+    .catch((err) => {
+      console.log('ERROR LOADING USER FOR PASSWORD CHANGE: ', err);
+    });
+};
+
+exports.postNewPassword = (req, res, next) => {
+  const newPassword = req.body.password;
+  const userId = req.body.userId;
+  const passwordToken = req.body.passwordToken;
+  let resetUser;
+
+  User.findOne({
+    resetToken: passwordToken,
+    resetTokenExpiration: {
+      $gt: Date.now(),
+    },
+    _id: userId,
+  })
+    .then((user) => {
+      resetUser = user;
+      return bcrypt.hash(newPassword, 12);
+    })
+    .then((hashedPassword) => {
+      resetUser.password = hashedPassword;
+      resetUser.resetToken = undefined;
+      resetUser.resetTokenExpiration = undefined;
+      resetUser.save();
+    })
+    .then((result) => {
+      res.redirect('/login');
+    })
+    .catch((err) => {
+      console.log('ERROR LOADING USER WHILE SETTING NEW PASSWORD: ', err);
+    });
 };
