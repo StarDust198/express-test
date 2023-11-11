@@ -1,6 +1,7 @@
 const crypto = require('crypto');
 const bcrypt = require('bcryptjs');
 const nodemailer = require('nodemailer');
+const { validationResult } = require('express-validator');
 
 const User = require('../models/User');
 const { emailUser, emailPassword } = require('../.env');
@@ -30,19 +31,23 @@ exports.getSignup = (req, res, next) => {
     path: '/signup',
     pageTitle: 'Signup',
     errorMessage,
+    oldInput: { emai: '', password: '', confirmPassword: '' },
   });
 };
 
 exports.postLogin = (req, res, next) => {
   const { email, password } = req.body;
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/login', {
+      path: '/login',
+      pageTitle: 'Login',
+      errorMessage: errors.array()[0].msg,
+    });
+  }
 
   User.findOne({ email })
     .then((user) => {
-      if (!user) {
-        req.flash('error', 'Invalid email.');
-        return res.redirect('/login');
-      }
-
       bcrypt
         .compare(password, user.password)
         .then((doMatch) => {
@@ -73,46 +78,50 @@ exports.postLogin = (req, res, next) => {
 
 exports.postSignup = (req, res, next) => {
   const { email, password, confirmPassword } = req.body;
-  User.findOne({ email })
-    .then((userDoc) => {
-      if (userDoc) {
-        req.flash('error', 'Email already registered.');
-        return res.redirect('/signup');
-      }
+  const errors = validationResult(req);
+  if (!errors.isEmpty()) {
+    return res.status(422).render('auth/signup', {
+      path: '/signup',
+      pageTitle: 'Signup',
+      errorMessage: errors.array()[0].msg,
+      oldInput: { email, password, confirmPassword },
+    });
+  }
 
-      return bcrypt
-        .hash(password, 12) // hashing password, 12 is highly secure level
-        .then((hashedPassword) => {
-          const user = new User({
-            email,
-            password: hashedPassword,
-            cart: { items: [] },
-          });
+  bcrypt
+    .hash(password, 12) // hashing password, 12 is highly secure level
+    .then((hashedPassword) => {
+      const user = new User({
+        email,
+        password: hashedPassword,
+        cart: { items: [] },
+      });
 
-          return user.save();
-        })
-        .then((result) => {
-          transporter.sendMail(
-            {
-              from: emailUser,
-              to: email,
-              subject: 'Successful Signup',
-              html: '<h1>You have successfully signed up!</h1>',
-            },
-            (err, info) => {
-              if (err) {
-                console.log(err);
-                return;
-              }
-
-              console.log('succesfully sent, response:', info.response);
-            }
-          );
-
-          return res.redirect('/login');
-        });
+      return user.save();
     })
-    .catch((err) => console.log(err));
+    .then((result) => {
+      transporter.sendMail(
+        {
+          from: emailUser,
+          to: email,
+          subject: 'Successful Signup',
+          html: '<h1>You have successfully signed up!</h1>',
+        },
+        (err, info) => {
+          if (err) {
+            console.log(err);
+            return;
+          }
+
+          console.log('succesfully sent, response:', info.response);
+        }
+      );
+
+      return res.redirect('/login');
+    })
+    .catch((err) =>
+      console.log('PASSWORD HASHING / MESSAGE SENDING ERROR: ', err)
+    );
 };
 
 exports.postLogout = (req, res, next) => {
