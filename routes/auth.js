@@ -22,13 +22,15 @@ router.post(
             return Promise.reject('No user with that email address');
           }
         });
-      }),
+      })
+      .normalizeEmail(),
     body(
       'password',
       'Password must with only letters and numbers and at least 6 characters'
     )
       .isLength({ min: 6 })
-      .isAlphanumeric(),
+      .isAlphanumeric()
+      .trim(),
   ],
   authController.postLogin
 );
@@ -51,14 +53,16 @@ router.post(
             return Promise.reject('Email already registered.');
           }
         });
-      }),
+      })
+      .normalizeEmail(),
     // just an alternative to checking the whole req
     body(
       'password',
       'Password must with only letters and numbers and at least 6 characters'
     )
       .isLength({ min: 6 })
-      .isAlphanumeric(),
+      .isAlphanumeric()
+      .trim(),
     body('confirmPassword').custom((value, { req }) => {
       if (value !== req.body.password)
         throw new Error('Passwords do not match!');
