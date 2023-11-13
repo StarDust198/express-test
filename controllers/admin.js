@@ -40,7 +40,15 @@ exports.postAddProduct = (req, res, next) => {
       console.log('ADDED PRODUCT!');
       res.redirect('/admin/products');
     })
-    .catch(console.log);
+    .catch((err) => {
+      // console.log('ERROR ADDING PRODUCT: ', err);
+      // res.redirect('/500');
+
+      // Alternative to reach special Express middleware:
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 exports.getEditProduct = (req, res, next) => {
@@ -64,7 +72,11 @@ exports.getEditProduct = (req, res, next) => {
         },
       });
     })
-    .catch(console.log);
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 exports.postEditProduct = (req, res, next) => {
@@ -111,7 +123,9 @@ exports.postDeleteProduct = (req, res, next) => {
       res.redirect('/admin/products');
     })
     .catch((err) => {
-      console.log('ERROR DELETING PRODUCT: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -124,5 +138,9 @@ exports.getProducts = (req, res, next) => {
         path: '/admin/products',
       });
     })
-    .catch(console.log);
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };

@@ -77,7 +77,9 @@ exports.postLogin = (req, res, next) => {
         });
     })
     .catch((err) => {
-      console.log('ERROR LOGGING IN: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -126,9 +128,11 @@ exports.postSignup = (req, res, next) => {
 
       return res.redirect('/login');
     })
-    .catch((err) =>
-      console.log('PASSWORD HASHING / MESSAGE SENDING ERROR: ', err)
-    );
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 exports.postLogout = (req, res, next) => {
@@ -191,7 +195,9 @@ exports.postReset = (req, res, next) => {
         );
       })
       .catch((err) => {
-        console.log('ERROR GETTING USER FROM THE DATABASE: ', err);
+        const error = new Error(err);
+        error.httpStatusCode = 500;
+        return next(error);
       });
   });
 };
@@ -247,6 +253,8 @@ exports.postNewPassword = (req, res, next) => {
       res.redirect('/login');
     })
     .catch((err) => {
-      console.log('ERROR LOADING USER WHILE SETTING NEW PASSWORD: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };

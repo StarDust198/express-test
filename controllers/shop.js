@@ -12,7 +12,9 @@ exports.getProducts = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log('ERROR FETCHING PRODUCTS: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -28,7 +30,9 @@ exports.getProduct = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log('ERROR GETTING PRODUCT: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -42,7 +46,9 @@ exports.getIndex = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log('ERROR SHOWING LIST OF PRODUCTS: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -56,7 +62,11 @@ exports.getCart = (req, res, next) => {
         products: user.cart.items,
       });
     })
-    .catch(console.log);
+    .catch((err) => {
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
+    });
 };
 
 exports.postCart = (req, res, next) => {
@@ -77,7 +87,9 @@ exports.postCartDelete = (req, res, next) => {
       res.redirect('/cart');
     })
     .catch((err) => {
-      console.log('ERROR DELETING PRODUCT FROM CART: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 
@@ -116,13 +128,8 @@ exports.getOrders = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log('ERROR GETTING ORDERS: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
-
-// exports.getCheckout = (req, res, next) => {
-//   res.render('shop/checkout', {
-//     path: '/checkout',
-//     pageTitle: 'Checkout',
-//   });
-// };
