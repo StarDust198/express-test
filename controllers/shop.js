@@ -1,6 +1,8 @@
 const fs = require('fs');
 const path = require('path');
 
+const PDFDocument = require('pdfkit');
+
 const Order = require('../models/Order');
 const Product = require('../models/Product');
 
@@ -141,28 +143,51 @@ exports.getInvoice = (req, res, next) => {
   const orderId = req.params.orderId;
   Order.findById(orderId)
     .then((order) => {
-      if (order) return next(new Error('No order found'));
+      if (!order) return next(new Error('No order found'));
       if (order.user.userId.toString() !== req.user._id.toString())
         return next(new Error('Unauthorized'));
+
+      const invoiceName = `invoice-${orderId}.pdf`;
+      const invoicePath = path.join('data', 'invoices', invoiceName);
+
+      // Generate PDF for response
+      const pdfDoc = new PDFDocument();
+      res.setHeader('Content-Type', 'application/pdf');
+      res.setHeader('Content-Disposition', `inline; filename=${invoiceName}`);
+      pdfDoc.pipe(fs.createWriteStream(invoicePath));
+      pdfDoc.pipe(res);
+
+      pdfDoc.fontSize(26).text('Invoice: #' + orderId, {
+        underline: true,
+      });
+      pdfDoc.fontSize(14).text('-------------------------------------------');
+      let totalPrice = 0;
+      order.items.forEach((prod) => {
+        totalPrice += prod.quantity * prod.productId.price;
+        pdfDoc.text(
+          `${prod.productId.title} - ${prod.quantity} x $${prod.productId.price}`
+        );
+      });
+      pdfDoc.text('-------------------------------------------');
+      pdfDoc.fontSize(20).text(`Total price: $${totalPrice}`);
+
+      pdfDoc.end();
+
+      // Option - read file and send it from the memory
+      // fs.readFile(invoicePath, (err, data) => {
+      //   if (err) return next(err);
+
+      //   // Otherwise we are being offered to download file without an extension
+      //   res.setHeader('Content-Type', 'application/pdf');
+      //   res.setHeader('Content-Disposition', `inline; filename=${invoiceName}`);
+      //   res.send(data);
+      // });
+
+      // Streaming - better, esp. for bigger files
+      // const file = fs.createReadStream(invoicePath);
+      // res.setHeader('Content-Type', 'application/pdf');
+      // res.setHeader('Content-Disposition', `inline; filename=${invoiceName}`);
+      // file.pipe(res);
     })
     .catch((err) => next(err));
-
-  const invoiceName = `invoice-${orderId}.pdf`;
-  const invoicePath = path.join('data', 'invoices', invoiceName);
-
-  // Option - read file and send it from the memory
-  // fs.readFile(invoicePath, (err, data) => {
-  //   if (err) return next(err);
-
-  //   // Otherwise we are being offered to download file without an extension
-  //   res.setHeader('Content-Type', 'application/pdf');
-  //   res.setHeader('Content-Disposition', `inline; filename=${invoiceName}`);
-  //   res.send(data);
-  // });
-
-  // Streaming - better, esp. for bigger files
-  const file = fs.createReadStream(invoicePath);
-  res.setHeader('Content-Type', 'application/pdf');
-  res.setHeader('Content-Disposition', `inline; filename=${invoiceName}`);
-  file.pipe(res);
 };
