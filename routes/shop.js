@@ -21,6 +21,7 @@ router.post('/create-order', isAuth, shopController.postOrder);
 
 router.get('/orders', isAuth, shopController.getOrders);
 
-// router.get('/checkout', shopController.getCheckout);
+// We have to make special route for this since we need to have it private
+router.get('/orders/:orderId', isAuth, shopController.getInvoice);
 
 module.exports = router;

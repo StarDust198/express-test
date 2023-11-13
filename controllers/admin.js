@@ -13,7 +13,17 @@ exports.getAddProduct = (req, res, next) => {
 };
 
 exports.postAddProduct = (req, res, next) => {
-  const { title, imageUrl, price, description } = req.body;
+  const { title, price, description } = req.body;
+  const image = req.file;
+  if (!image) {
+    return res.status(422).render('admin/edit-product', {
+      editing: false,
+      path: '/admin/add-product',
+      pageTitle: 'Add Product',
+      errorMessage: 'Attached file is not an image',
+      oldInput: { title, price, description },
+    });
+  }
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
@@ -22,9 +32,11 @@ exports.postAddProduct = (req, res, next) => {
       path: '/admin/add-product',
       pageTitle: 'Add Product',
       errorMessage: errors.array()[0].msg,
-      oldInput: { title, imageUrl, price, description },
+      oldInput: { title, price, description },
     });
   }
+
+  const imageUrl = image.path;
 
   const product = new Product({
     title,
@@ -80,18 +92,18 @@ exports.getEditProduct = (req, res, next) => {
 };
 
 exports.postEditProduct = (req, res, next) => {
-  const { productId, title, imageUrl, price, description } = req.body;
-  const editMode = req.query.edit;
+  const { productId, title, price, description } = req.body;
+  const image = req.file;
 
   const errors = validationResult(req);
   if (!errors.isEmpty()) {
     return res.status(422).render('admin/edit-product', {
       productId,
-      editing: editMode,
+      editing: true,
       path: '/admin/edit-product',
       pageTitle: 'Edit Product',
       errorMessage: errors.array()[0].msg,
-      oldInput: { title, imageUrl, price, description },
+      oldInput: { title, price, description },
     });
   }
 
@@ -103,7 +115,7 @@ exports.postEditProduct = (req, res, next) => {
       product.title = title;
       product.price = price;
       product.description = description;
-      product.imageUrl = imageUrl;
+      if (image) product.imageUrl = image.path;
 
       return product.save().then((result) => {
         console.log('UPDATED PRODUCT!');
@@ -111,7 +123,9 @@ exports.postEditProduct = (req, res, next) => {
       });
     })
     .catch((err) => {
-      console.log('ERROR UPDATING PRODUCT: ', err);
+      const error = new Error(err);
+      error.httpStatusCode = 500;
+      return next(error);
     });
 };
 

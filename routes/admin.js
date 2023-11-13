@@ -19,7 +19,7 @@ router.post(
     body('title', 'Title must be at least 6 characters')
       .isLength({ min: 6 })
       .trim(),
-    body('imageUrl').isURL().withMessage('Invalid image URL'),
+    // body('imageUrl').isURL().withMessage('Invalid image URL'),
     body('price').isNumeric().withMessage('Price should be numeric'),
     body('description')
       .isLength({ min: 6 })
