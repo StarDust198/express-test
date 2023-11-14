@@ -57,10 +57,11 @@ app.use(
     fileFilter,
   }).single('image')
 ); // matches name of image input
-app.use(express.static(path.join(__dirname, 'public')));
 
+app.use(express.static(path.join(__dirname, 'public')));
 // serving images publicly
 app.use('/images', express.static(path.join(__dirname, 'images')));
+
 app.use(
   session({
     secret: 'tsss',
