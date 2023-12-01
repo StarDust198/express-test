@@ -2,3 +2,6 @@ node_modules
 .DS_Store
 nodemon.json
 images
+server.cert
+server.key
+*.log
