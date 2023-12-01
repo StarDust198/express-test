@@ -4,13 +4,12 @@ const nodemailer = require('nodemailer');
 const { validationResult } = require('express-validator');
 
 const User = require('../models/User');
-const { emailUser, emailPassword } = require('../.env');
 
 const transporter = nodemailer.createTransport({
   service: 'hotmail',
   auth: {
-    user: emailUser,
-    pass: emailPassword,
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
   },
 });
 
@@ -111,7 +110,7 @@ exports.postSignup = (req, res, next) => {
     .then((result) => {
       transporter.sendMail(
         {
-          from: emailUser,
+          from: process.env.EMAIL_USER,
           to: email,
           subject: 'Successful Signup',
           html: '<h1>You have successfully signed up!</h1>',
@@ -176,7 +175,7 @@ exports.postReset = (req, res, next) => {
         res.redirect('/login');
         transporter.sendMail(
           {
-            from: emailUser,
+            from: process.env.EMAIL_USER,
             to: req.body.email,
             subject: 'Password Reset Requested',
             html: `
